@@ -59,7 +59,7 @@ class ChattingScreenViewModel extends ChangeNotifier {
     "Sounds good to me. Any place in mind?",
     "How about that new Italian restaurant downtown?",
     "Perfect. I've been wanting to try it. See you then!",
-    "Visit OpenAI's website at https://www.openai.com for more information, join the conversation on AI research using #ArtificialIntelligence, and don't forget to follow @OpenAI for the latest updates."
+    "Visit Google website at https://www.google.com for more information, join the conversation on research using #ArtificialIntelligence, and don't forget to follow @Harminder for the latest updates."
   ];
 
 
