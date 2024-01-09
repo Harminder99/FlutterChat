@@ -1,7 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:untitled2/Chatting/ReceiverProfile.dart';
 import 'package:untitled2/Home/HomeScreenModel.dart';
+import 'package:untitled2/NetworkApi/ApiEndpoints.dart';
+import 'package:untitled2/NetworkApi/WebSocketManager.dart';
 
+import '../NetworkApi/CallBackSocketModel.dart';
 import 'ChattingScreenModel.dart';
 
 class ChattingScreenViewModel extends ChangeNotifier {
@@ -88,15 +92,25 @@ class ChattingScreenViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void sendMessage(TextEditingController textController) {
+  void sendMessage(BuildContext context,TextEditingController textController) {
     if (_inputText.isNotEmpty) {
-      _messages.insert(0, ChattingScreenModel(
+      final model = ChattingScreenModel(
           isSender: true,
           message: _inputText,
           date: DateTime.now(),
           status: MessageStatus.sent,
           id: "1",
-          receiverProfile: ReceiverProfile(name: 'Maninder', id: "1", photo: "")));
+          receiverProfile: ReceiverProfile(name: 'Maninder', id: "1", photo: ""));
+      _messages.insert(0, model);
+      final viewModel = Provider.of<WebSocketManager>(context, listen: false);
+
+      viewModel.emitWithCallBack(ApiEndpoints.sendMessage, model.toJson(),(CallBackSocketModel model){
+        if (model.status == ApiEndpoints.success){
+          debugPrint("Wahoooo!");
+        }else{
+          debugPrint("Oooops!");
+        }
+      });
       _inputText = "";
       textController.clear();
       notifyListeners();

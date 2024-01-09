@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:untitled2/Login/LoginModel.dart';
+import 'package:untitled2/Login/LoginScreen.dart';
+import 'package:untitled2/Login/LoginViewModel.dart';
 
+import '../NetworkApi/WebSocketManager.dart';
 import '../Reuseables/CircleImage.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -32,7 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       expandedHeight: 250.0,
       flexibleSpace: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-
           return FlexibleSpaceBar(
             titlePadding: const EdgeInsets.only(
               left: 0,
@@ -88,8 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           Container(
-            margin: const EdgeInsets.only(
-                top: 2, bottom: 2, right: 2, left: 2),
+            margin: const EdgeInsets.only(top: 2, bottom: 2, right: 2, left: 2),
             child: const SizedBox(
               width: 102.0, // Slightly larger than CircleImage
               height: 102.0,
@@ -135,7 +138,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Logout'),
-          onTap: () {}, // Add your action
+          onTap: () {
+            final viewModel =
+                Provider.of<LoginViewModel>(context, listen: false);
+
+            if (viewModel.model != null && viewModel.model?.token != "") {
+              final socket = Provider.of<WebSocketManager>(context, listen: false);
+              socket.disConnect();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) =>
+                    false, // This condition ensures all routes are removed
+              );
+            }
+          }, // Add your action
         ),
       ],
     );

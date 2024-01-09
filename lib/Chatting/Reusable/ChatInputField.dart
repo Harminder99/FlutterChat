@@ -208,7 +208,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                   onPressed: () {
                     if (viewModel.isSendButtonVisible) {
                       // Handle send
-                      viewModel.sendMessage(_textController);
+                      viewModel.sendMessage(context,_textController);
                     } else {
                       // Handle attachment
                       Utils.showAttachmentSheet(context, _onAttachment);

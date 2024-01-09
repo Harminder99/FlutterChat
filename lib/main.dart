@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:untitled2/Chatting/ChattingScreenViewModel.dart';
 import 'package:untitled2/ForgotPassword/ForgotPasswordViewModel.dart';
 import 'package:untitled2/Home/HomeScreenViewModel.dart';
+import 'package:untitled2/NetworkApi/WebSocketManager.dart';
 import 'Login/LoginScreen.dart';
 import 'Login/LoginViewModel.dart';
-import 'Signup/SignUpViewModel.dart';
 import 'Utiles/ThemeNotifier.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -15,8 +15,8 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ChangeNotifierProvider(create: (_) => WebSocketManager()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
-        ChangeNotifierProvider(create: (_) => SignUpViewModel()),
         ChangeNotifierProvider(create: (_) => ForgotPasswordViewModel()),
         ChangeNotifierProvider(create: (_) => HomeScreenViewModel()),
         ChangeNotifierProvider(create: (_) => ChattingScreenViewModel()),

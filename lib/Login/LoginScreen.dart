@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled2/ForgotPassword/ForgotPasswordScreen.dart';
 import 'package:untitled2/Home/HomeScreen.dart';
+import 'package:untitled2/Utiles/Dialogs.dart';
 
 import '../Reuseables/CircleImage.dart';
 import '../Reuseables/CustomButton.dart';
@@ -82,11 +83,14 @@ class _LoginFormState extends State<LoginForm> {
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                         ),
-                        onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const ForgotPasswordScreen())),
+                        onPressed: () {
+                          loginViewModel.cancelLoginApi();
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ForgotPasswordScreen()));
+                        },
                         child: const Text('Forgot Password?',
                             style: TextStyle(
                                 color: Colors.lightBlue, fontSize: 13)),
@@ -94,6 +98,7 @@ class _LoginFormState extends State<LoginForm> {
                     ),
                     GradientButton(
                       marginTop: 10,
+                      isLoading: loginViewModel.isLoginLoading,
                       gradient: const LinearGradient(
                         colors: [Colors.blue, Colors.purple],
                         begin: Alignment.centerLeft,
@@ -102,10 +107,19 @@ class _LoginFormState extends State<LoginForm> {
                       onPressed: () {
                         if (loginViewModel.validateAndSaveForm(_formKey)) {
                           // Perform login logic using ViewModel
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen()));
+                          //loginViewModel.startLoading();
+                          loginViewModel.loginApi((error){
+                            if (error != null) {
+                              Dialogs().showDefaultAlertDialog(
+                                  context, "Alert", error!);
+                            } else {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                    (Route<dynamic> route) => false, // This condition ensures all routes are removed
+                              );
+                            }
+                          });
                         }
                       },
                       child: const Text(
@@ -116,10 +130,13 @@ class _LoginFormState extends State<LoginForm> {
                       width: 1,
                       marginTop: 10,
                       text: 'Signup',
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SignUpScreen())),
+                      onPressed: () {
+                        loginViewModel.cancelLoginApi();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SignUpScreen()));
+                      },
                     ),
                   ],
                 ),

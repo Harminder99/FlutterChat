@@ -32,6 +32,18 @@ class HomeScreenModel {
     );
   }
 
+  factory HomeScreenModel.fromSocketJson(Map<String, dynamic> json) {
+    return HomeScreenModel(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      email: json['email'] as String,
+      photo: json['photo'] as String,
+      message: json['message'] as String,
+      count: json['count'] as int,
+      date: DateTime.parse(json['date']),
+    );
+  }
+
 // Optionally, add a method to convert the user model to a map (e.g., for JSON serialization)
   Map<String, dynamic> toJson() {
     return {

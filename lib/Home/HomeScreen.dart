@@ -3,11 +3,14 @@ import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled2/Chatting/ChattingScreen.dart';
 import 'package:untitled2/Home/HomeScreenViewModel.dart';
+import 'package:untitled2/NetworkApi/ApiEndpoints.dart';
+import 'package:untitled2/NetworkApi/WebSocketManager.dart';
 import 'package:untitled2/Profile/ProfileScreen.dart';
 
 import '../Reuseables/HomeAppBar.dart';
 import '../Utiles/ProfileDialogScreen.dart';
 import 'Cells/UserItem.dart';
+import 'ChatTempModel.dart';
 import 'HomeScreenModel.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -71,11 +74,16 @@ class _HomeScreenState extends State<HomeScreenForm> {
   @override
   void initState() {
     super.initState();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final socket = Provider.of<WebSocketManager>(context, listen: false);
+      socket.connect(context);
+      socket.on(ApiEndpoints.receiveMessage, (ChatTempModel model) {
+       debugPrint("Message Found${model.message}");
+      });
+    });
     _scrollController.addListener(_onScroll);
     final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
     viewModel.getUsers(1);
-
     _searchController.addListener(_onSearchChanged);
   }
 

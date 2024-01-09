@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class GradientButton extends StatelessWidget {
   final Widget child;
   final Gradient gradient;
   final double width;
-  //final double height;
   final VoidCallback onPressed;
   final double? marginTop;
+  final bool isLoading;
 
   const GradientButton({
     super.key,
     required this.child,
     required this.gradient,
-    this.width = double.infinity, // Default full width
-   // this.height = 50.0, // Default height
-    required this.onPressed, this.marginTop,
+    this.width = double.infinity,
+    required this.onPressed,
+    this.marginTop,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Determine the height of the button's child content
+    const double contentHeight = 20.0; // Adjust as per your design
+
     return Container(
       width: width,
-      //height: height,
       margin: EdgeInsets.only(top: marginTop ?? 0),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(30), // Adjust the radius as needed
+        borderRadius: BorderRadius.circular(30),
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -34,9 +38,15 @@ class GradientButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
+          padding: const EdgeInsets.symmetric(vertical: 15),
         ),
-        onPressed: onPressed,
-        child: child,
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ?  const SpinKitSpinningLines(
+          color: Colors.white,
+          size: 20.0,
+        )
+            : child,
       ),
     );
   }

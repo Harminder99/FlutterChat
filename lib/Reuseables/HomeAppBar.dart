@@ -37,6 +37,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       title: Text(title),
+      automaticallyImplyLeading: false,
       actions: <Widget>[
         PopupMenuButton<dynamic>(
           icon: const Icon(Icons.more_vert),
