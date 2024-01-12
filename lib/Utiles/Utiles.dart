@@ -41,8 +41,6 @@ class Utils {
     return DateFormat('jm').format(date);
   }
 
-
-
   static void showAttachmentSheet(BuildContext context, Function(AttachmentType type)? onPress) {
     showModalBottomSheet(
       context: context,

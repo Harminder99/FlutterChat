@@ -25,6 +25,31 @@ class ApiService {
     token?.cancel("Cancelled");
     _cancelTokens.remove(apiEndPoint);
   }
+  Future<ApiResponse<T>> getWithBody<T>(String apiEndPoint, String params,dynamic body, T Function(dynamic) fromJson) async {
+    try {
+      debugPrint("Future ==> ${ApiEndpoints.baseUrl}$apiEndPoint$params");
+      CancelToken cancelToken = CancelToken();
+      _cancelTokens[apiEndPoint] = cancelToken;
+      Response response = await _dio.get(
+        "${ApiEndpoints.baseUrl}$apiEndPoint$params",
+        data: body,
+        options: Options(headers: _headerService.getHeaders(apiEndPoint)),
+        cancelToken: cancelToken,
+      );
+      cancelApi(apiEndPoint);
+      return ApiResponse(data: fromJson(response.data));
+    } on DioException catch (e) {
+      cancelApi(apiEndPoint);
+      final errorMessage = e.response?.data["message"] ?? 'Unknown error occurred';
+      final status = e.response?.statusCode;
+      return ApiResponse(error: ApiError(message: errorMessage, status: status));
+    } catch (e) {
+      debugPrint("API Error ==> ${e.toString()}");
+      cancelApi(apiEndPoint);
+      return ApiResponse(error: ApiError(message: 'Unknown error occurred', status: 400));
+    }
+  }
+
 
   Future<ApiResponse<T>> get<T>(String apiEndPoint, String params, T Function(dynamic) fromJson) async {
     try {

@@ -12,67 +12,67 @@ class ProfileDialogScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GestureDetector(
-        onTap: () {
-          Navigator.of(context).pop(); // Close the dialog when tapped outside
-        },
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          color: Colors.transparent,
-          child: Center(
-            child: Container(
-              color: Theme.of(context).cardColor,
-              margin: EdgeInsets.zero,
-              width: MediaQuery.of(context).size.width * 0.5, // 80% of screen width
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Use minimum space needed by children
-                children: <Widget>[
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.72,
-                    padding: EdgeInsets.zero,
+    return Hero(
+      tag: tag,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop(); // Close the dialog when tapped outside
+          },
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.transparent,
+            child: Center(
+              child: Container(
+                color: Theme.of(context).cardColor,
+                margin: EdgeInsets.zero,
+                width: MediaQuery.of(context).size.width * 0.5, // 80% of screen width
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Use minimum space needed by children
+                  children: <Widget>[
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.72,
+                      padding: EdgeInsets.zero,
 
-                    child:  Hero(
-                      tag: tag,
                       child: Image.network(
                         'https://picsum.photos/200',
                         fit: BoxFit.cover,
                         width: MediaQuery.of(context).size.width * 0.72,
+                      ) ,
+                    ),
+                    Container(
+                      height: 50,
+                      padding: EdgeInsets.zero,
+
+                      width: MediaQuery.of(context).size.width * 0.72,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chat),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>  ChattingScreen(user: user, tag: tag)));
+                            }, // Add your action
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.info),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const FriendProfileScreen(tag: '',)));
+                            }, // Add your action
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Container(
-                    height: 50,
-                    padding: EdgeInsets.zero,
-
-                    width: MediaQuery.of(context).size.width * 0.72,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.chat),
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>  ChattingScreen(user: user, tag: tag)));
-                          }, // Add your action
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.info),
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const FriendProfileScreen(tag: '',)));
-                          }, // Add your action
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

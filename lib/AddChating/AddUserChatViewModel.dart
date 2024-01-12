@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:untitled2/Utiles/LocationService.dart';
 import 'package:untitled2/Utiles/Utiles.dart';
 
 import '../Home/HomeScreenModel.dart';
@@ -6,7 +8,6 @@ import '../NetworkApi/ApiEndpoints.dart';
 import '../NetworkApi/ApiResponse.dart';
 import '../NetworkApi/ApiService.dart';
 import '../NetworkApi/HeaderService.dart';
-
 
 class AddUserChatViewModel extends ChangeNotifier {
   bool _isLoginLoading = false;
@@ -17,8 +18,11 @@ class AddUserChatViewModel extends ChangeNotifier {
   List<HomeScreenModel> _userData = [];
 
   List<HomeScreenModel> get data => _userData;
+  Position? _position;
 
   int get limit => _limit;
+
+  Position? get position => _position;
 
   String get searchTxt => _searchTxt;
   ApiService? _apiService;
@@ -34,6 +38,27 @@ class AddUserChatViewModel extends ChangeNotifier {
 
   bool get isLoginLoading => _isLoginLoading;
 
+  bool setPosition(Position p) {
+
+    if (_position == null) {
+      debugPrint("init location");
+      _position = p;
+      return true;
+    } else if (!LocationService.isWithInRadius(
+        p.latitude,
+        p.longitude,
+        _position!.latitude,
+        _position!.longitude,
+        LocationService.getKMFromMeters(100))) {
+      _position = p;
+      debugPrint("location");
+      return true;
+    } else {
+      debugPrint("init location else");
+    }
+    return false;
+  }
+
   void startLoading() {
     _isLoginLoading = true;
     notifyListeners();
@@ -45,20 +70,19 @@ class AddUserChatViewModel extends ChangeNotifier {
   }
 
   void getUsers(int page, Function(String? error) onComplete) async {
-    // Implement your logic to fetch data here
-    // For example, fetch data from an API and add it to _data
-
-    // Simulating network call
-    // _data.clear();
-    // _data.addAll(createDummyUsers());
-    // _userData = _data;
-    // Future.microtask(() => notifyListeners());
     startLoading();
+
+    final body = {
+      "coordinates": [_position?.latitude, _position?.longitude],
+      "distance": 100
+    };
+    debugPrint("body ===> $body");
     ApiResponse<List<HomeScreenModel>>? response =
-    await _apiService?.get<List<HomeScreenModel>>(
+        await _apiService?.getWithBody<List<HomeScreenModel>>(
       ApiEndpoints.usersEndpoint,
       "",
-          (json) {
+      body,
+      (json) {
         final data = json["data"];
         if (data is List) {
           return data
@@ -97,7 +121,7 @@ class AddUserChatViewModel extends ChangeNotifier {
       debugPrint("_data ==> ${_data.length} $searchTxt");
       _userData = _data;
       notifyListeners();
-    }else  if (searchTxt.length > 3) {
+    } else if (searchTxt.length > 3) {
       _userData = _data.where((user) {
         return user.username.toLowerCase().contains(searchTxt.toLowerCase());
       }).toList();
@@ -109,24 +133,5 @@ class AddUserChatViewModel extends ChangeNotifier {
   void onImageTap(HomeScreenModel user) {
     // Handle image tap logic here
     debugPrint("Image tapped for user: ${user.username}");
-  }
-
-  List<HomeScreenModel> createDummyUsers() {
-    List<HomeScreenModel> users = [];
-
-    for (int i = 1; i <= 110; i++) {
-      users.add(HomeScreenModel(
-          id: 'id_$i',
-          username:
-          'User \nMy name is Harminder Singh Saini , You would like to talk $i',
-          email: 'user$i@example.com',
-          photo: 'https://example.com/photo$i.jpg',
-          message:
-          'This is \n a message  from user, \nMy name is Harminder Singh Saini , You would like to talk $i',
-          date: DateTime.now(),
-          count: Utils.generateRandomNumber()));
-    }
-
-    return users;
   }
 }

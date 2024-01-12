@@ -47,12 +47,12 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
     <string>Your custom usage description here</string>
-
     <key>NSCameraUsageDescription</key>
     <string>Your custom camera usage description here</string>
-
     <key>NSMicrophoneUsageDescription</key>
     <string>Your custom microphone usage description here</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location when open.</string>
 
 </dict>
 </plist>

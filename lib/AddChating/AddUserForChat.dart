@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled2/Chatting/ChattingScreen.dart';
 import 'package:untitled2/Chatting/ChattingScreenModel.dart';
@@ -7,6 +8,7 @@ import 'package:untitled2/Chatting/ChattingScreenViewModel.dart';
 import 'package:untitled2/NetworkApi/ApiEndpoints.dart';
 import 'package:untitled2/NetworkApi/SocketResponse.dart';
 import 'package:untitled2/NetworkApi/WebSocketManager.dart';
+import 'package:untitled2/Utiles/LocationService.dart';
 
 import '../Home/Cells/UserItem.dart';
 import '../Home/HomeScreenModel.dart';
@@ -60,7 +62,7 @@ class _AddUserForChatState extends State<AddUserForChat>
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      callApi(1);
+      getPosition();
     });
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
@@ -143,11 +145,37 @@ class _AddUserForChatState extends State<AddUserForChat>
     callApi(1);
   }
 
+  Future<void> getPosition() async {
+    final homeScreenViewModel = Provider.of<AddUserChatViewModel>(context,listen: false);
+    try {
+      Position position = await LocationService().determinePosition();
+      debugPrint("Locations ==> ${position.latitude}, ${position.longitude}");
+      bool isNeedToApiCall = homeScreenViewModel.setPosition(position);
+      // updateApi Here
+      if (isNeedToApiCall){
+        callApi(1);
+      }else if (position == null && homeScreenViewModel.data.isEmpty){
+        callApi(1);
+      }
+    } catch (e) {
+      // Handle exceptions/errors
+      debugPrint('Error occurred: $e');
+      if(homeScreenViewModel.data.isEmpty){
+        callApi(1);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Chat")),
+      appBar: AppBar(title: const Text("Add Chat"), actions: [
+        IconButton(
+          icon: const Icon(Icons.my_location),
+          onPressed: () => getPosition(),
+        )
+      ],),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: _body(),
