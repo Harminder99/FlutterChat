@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:untitled2/Reuseables/CircleImage.dart';
-import 'package:untitled2/Utiles/Dialogs.dart';
 import 'package:untitled2/Utiles/Utiles.dart';
-
-import '../../Utiles/ProfileDialogScreen.dart';
 
 class UserItem extends StatelessWidget {
   final String imageUrl;
@@ -38,8 +34,6 @@ class UserItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
 
     return InkWell(
       onTap: onCellTap,
@@ -105,9 +99,10 @@ class UserItem extends StatelessWidget {
                 children: [
                   if (date != null)
                     Text(
-                      _formatTime(date!),
+                      Utils.formatAgoTime(date!),
                       style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
+                  if (count > 0)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
                     padding: const EdgeInsets.all(4),
@@ -139,9 +134,5 @@ class UserItem extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime date) {
-    // Format the time as "1 min ago", "2 hours ago", etc.
-    // Using DateFormat for simplicity; replace with your preferred format
-    return DateFormat('jm').format(date);
-  }
+
 }

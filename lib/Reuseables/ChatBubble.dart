@@ -1,20 +1,25 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
+import '../Chatting/ChattingScreenModel.dart';
+import '../Utiles/Utiles.dart';
 
 class ChatBubble extends StatelessWidget {
   final Widget child;
   final bool isSender;
   final double? verticalPadding;
   final double? horizontalPadding;
-
+  final MessageStatus status;
+  final DateTime date;
 
   const ChatBubble(
       {Key? key,
       required this.child,
       required this.isSender,
-        required this.verticalPadding,
-        required this.horizontalPadding})
+      required this.verticalPadding,
+      required this.horizontalPadding,
+      required this.status,
+      required this.date})
       : super(key: key);
 
   @override
@@ -31,12 +36,44 @@ class ChatBubble extends StatelessWidget {
                 maxWidth: MediaQuery.of(context).size.width * 0.8,
               ),
               child: Container(
-                padding:  EdgeInsets.symmetric(vertical: verticalPadding ?? 10, horizontal: horizontalPadding ?? 15),
+                padding: EdgeInsets.symmetric(
+                    vertical: verticalPadding ?? 10,
+                    horizontal: horizontalPadding ?? 15),
                 decoration: BoxDecoration(
                   color: isSender ? Colors.blue[200] : Colors.grey[500],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: child,
+                child: Column(
+                  children: [
+                    child,
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(Utils.formatAgoTime(date!),
+                              style: const TextStyle(
+                                  fontSize: 11, color: Colors.black)),
+                          if (isSender)
+                            Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Icon(
+                                    status == MessageStatus.sending
+                                        ? Icons.history
+                                        : status == MessageStatus.sent
+                                            ? Icons.check
+                                            : status == MessageStatus.delivered
+                                                ? Icons.done_all
+                                                : Icons.sync,
+                                    size: 14,
+                                    color: status == MessageStatus.seen
+                                        ? Colors.blue
+                                        : Colors.black)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

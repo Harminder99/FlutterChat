@@ -1,16 +1,22 @@
+import 'package:flutter/cupertino.dart';
+
 import '../Login/LoginViewModel.dart';
 
 class HeaderService {
-  final LoginViewModel _loginViewModel;
 
-  HeaderService(this._loginViewModel);
+  HeaderService();
 
-  Map<String, String> getHeaders() {
+  Map<String, String> getHeaders(String? apiEndPoint) {
     // Example header with basic authentication
-    String basicAuth = "Basic ${_loginViewModel.model?.token}";
+    String basicAuth = "bearer ${Global.authToken}";
     return {
       'Authorization': basicAuth,
       // Add other headers as needed
     };
   }
 }
+
+class Global {
+  static String? authToken;
+}
+

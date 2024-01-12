@@ -58,12 +58,8 @@ class WebSocketManager with ChangeNotifier {
 
   void emitWithCallBack(String event, dynamic data,
       [Function(CallBackSocketModel)? callback]) {
-    debugPrint("START EMIT $event == $data");
     _socket.emitWithAck(event, data, ack: (response) {
-      debugPrint("response ==> $response");
       CallBackSocketModel model = CallBackSocketModel.fromJson(response);
-      // Handle the callback model here
-      debugPrint("Status: ${model.status}, Message: ${model.message}");
       if (callback != null) {
         callback!(model);
       }
@@ -75,6 +71,7 @@ class WebSocketManager with ChangeNotifier {
   }
 
   void off(String event) {
+    debugPrint("OFF $event");
     _socket.off(event);
   }
 
@@ -82,16 +79,16 @@ class WebSocketManager with ChangeNotifier {
   //   _socket.on(event, callback);
   // }
 
-  void on<T extends SocketResponse>(String event, Function(T) callback) {
+  void on(String event, Function(SocketResponse) callback) {
+    debugPrint("ON $event");
     _socket.on(event, (data) {
-      // Assuming the incoming data is a Map
-      debugPrint("Event ==> $data");
-      T model = modelFromJson<T>(data) as T;
-      debugPrint("Event ==> ${model.event}");
+      debugPrint("data ===> $data");
+      SocketResponse model = SocketResponse.fromJson(data);
+      debugPrint("Message Found ${model.room} == $room");
       if (model.room == room) {
         callback(model);
       } else {
-        debugPrint("This Message is not For this room");
+        debugPrint("This Message is not For this room ${model.room} == $room");
       }
     });
   }

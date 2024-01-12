@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled2/Chatting/ChattingScreenViewModel.dart';
+import 'package:untitled2/Chatting/ReceiverProfile.dart';
 import 'package:untitled2/Home/HomeScreenModel.dart';
 import 'package:untitled2/Profile/FriendProfileScreen.dart';
 
@@ -12,7 +13,6 @@ class ChattingScreen extends StatefulWidget {
   final HomeScreenModel user;
   final String tag;
 
-
   const ChattingScreen({super.key, required this.user, required this.tag});
 
   @override
@@ -20,11 +20,16 @@ class ChattingScreen extends StatefulWidget {
 }
 
 class _ChattingScreenState extends State<ChattingScreen> {
-
   @override
   void initState() {
     super.initState();
-    final viewModel = Provider.of<ChattingScreenViewModel>(context, listen: false);
+    final viewModel =
+    Provider.of<ChattingScreenViewModel>(context, listen: false);
+    viewModel.setReceiverProfile(ReceiverProfile(
+        name: widget.user.username,
+        id: widget.user.id,
+        photo: widget.user.photo,
+        email: widget.user.email));
     viewModel.getChatting();
   }
 
@@ -39,17 +44,18 @@ class _ChattingScreenState extends State<ChattingScreen> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>  FriendProfileScreen(tag: widget.tag)));
+            builder: (context) => FriendProfileScreen(tag: widget.tag)));
   }
 
   PreferredSizeWidget _buildAppBar() {
-    final viewModel = Provider.of<ChattingScreenViewModel>(context, listen: true);
+    final viewModel =
+        Provider.of<ChattingScreenViewModel>(context, listen: true);
     if (viewModel.selectedMessages.isNotEmpty) {
       return AppBar(
         title: Text('${viewModel.selectedMessages.length} selected'),
         leading: IconButton(
           icon: const Icon(Icons.cancel),
-          onPressed:()=> viewModel.clearMessageSelection(),
+          onPressed: () => viewModel.clearMessageSelection(),
         ),
         actions: _buildMenuActions(),
       );
@@ -76,7 +82,8 @@ class _ChattingScreenState extends State<ChattingScreen> {
   }
 
   List<Widget> _buildMenuActions() {
-    final viewModel = Provider.of<ChattingScreenViewModel>(context, listen: false);
+    final viewModel =
+        Provider.of<ChattingScreenViewModel>(context, listen: false);
     List<Widget> actions = [];
 
     if (viewModel.selectedMessages.length == 1) {
@@ -84,19 +91,19 @@ class _ChattingScreenState extends State<ChattingScreen> {
         // Add your actions for single selection
         IconButton(
           icon: const Icon(Icons.copy_all_outlined),
-          onPressed:()=>{},
+          onPressed: () => {},
         ),
         IconButton(
           icon: const Icon(Icons.edit),
-          onPressed:()=>{},
+          onPressed: () => {},
         ),
         IconButton(
           icon: const Icon(Icons.delete),
-          onPressed:()=>{},
+          onPressed: () => {},
         ),
         IconButton(
           icon: const Icon(Icons.info),
-          onPressed:()=>{},
+          onPressed: () => {},
         )
       ]);
     } else if (viewModel.selectedMessages.length > 1) {
@@ -104,7 +111,7 @@ class _ChattingScreenState extends State<ChattingScreen> {
         // Add your actions for multiple selections
         IconButton(
           icon: const Icon(Icons.delete),
-          onPressed:()=>{},
+          onPressed: () => {},
         ),
       ]);
     }
@@ -112,12 +119,8 @@ class _ChattingScreenState extends State<ChattingScreen> {
     return actions;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-
-
     return GestureDetector(
       onTap: () {
         final viewModel =

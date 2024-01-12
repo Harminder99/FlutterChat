@@ -1,5 +1,8 @@
+import 'package:flutter/cupertino.dart';
+
 class ReceiverProfile {
   final String name;
+  final String email;
   final String id;
   final String photo;
 
@@ -7,14 +10,15 @@ class ReceiverProfile {
     required this.name,
     required this.id,
     required this.photo,
+    required this.email,
   });
 
   factory ReceiverProfile.fromJson(Map<String, dynamic> json) {
     return ReceiverProfile(
-      name: json['name'] as String,
-      id: json['id'] as String,
-      photo: json['photo'] as String,
-    );
+        name: json['name']?.toString() ?? "",
+        id: json['id']?.toString() ?? "",
+        photo: json['photo']?.toString() ?? "",
+        email: json['email']?.toString() ?? "");
   }
 
   Map<String, dynamic> toJson() {
@@ -22,6 +26,7 @@ class ReceiverProfile {
       'name': name,
       'id': id,
       'photo': photo,
+      'email': email,
     };
   }
 }

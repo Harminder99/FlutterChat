@@ -1,11 +1,15 @@
+import 'package:flutter/cupertino.dart';
+
+import '../Chatting/ChattingScreenModel.dart';
+
 class HomeScreenModel {
   final String id;
   final String username;
   final String email;
   final String photo;
-  final String message;
-  final DateTime? date; // Allowing date to be null
-  final int count;
+  String message;
+  DateTime? date; // Allowing date to be null
+  int count;
 
   HomeScreenModel({
     required this.id,
@@ -17,18 +21,31 @@ class HomeScreenModel {
     this.count = 0,
   });
 
+  void updateCount(int v) {
+    count = v;
+  }
 
+  factory HomeScreenModel.updateModelFromChatModel(ChattingScreenModel model) {
+    return HomeScreenModel(
+        id: model.receiverProfile.id,
+        username: model.receiverProfile.name,
+        email: model.receiverProfile.email,
+        photo: model.receiverProfile.photo,
+        message: model.message,
+        count: 1,
+        date: model.date);
+  }
 
 // Optionally, add a factory method to create a HomeScreenModel from a map (e.g., from JSON)
   factory HomeScreenModel.fromJson(Map<String, dynamic> json) {
     return HomeScreenModel(
-      id: json['id'] as String,
-      username: json['username'] as String,
-      email: json['email'] as String,
-      photo: json['photo'] as String,
-      message: json['message'] as String,
-      count: json['count'] as int,
-      date: DateTime.parse(json['date']),
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? "",
+      username: json['name']?.toString() ?? "",
+      email: json['email']?.toString() ?? "",
+      photo: json['photo']?.toString() ?? "",
+      message: json['message']?.toString() ?? "",
+      count: 0,
+      date: DateTime.parse(json['createdAt']),
     );
   }
 

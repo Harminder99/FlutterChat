@@ -2,6 +2,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 enum AttachmentType {
   image,
@@ -24,7 +26,19 @@ class Utils {
   static int generateRandomNumber() {
     var random = Random();
     final v = random.nextInt(10000000);
-    return v != null ? v : 0; // Generates a random number from 0 to 9,999,999
+    return v; // Generates a random number from 0 to 9,999,999
+  }
+
+  static String generateUniqueString() {
+    const uuid = Uuid();
+    final uniqueString = uuid.v4(); // Generates a random UUID string
+    return uniqueString;
+  }
+
+  static String formatAgoTime(DateTime date) {
+    // Format the time as "1 min ago", "2 hours ago", etc.
+    // Using DateFormat for simplicity; replace with your preferred format
+    return DateFormat('jm').format(date);
   }
 
 

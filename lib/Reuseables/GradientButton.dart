@@ -22,7 +22,7 @@ class GradientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Determine the height of the button's child content
-    const double contentHeight = 20.0; // Adjust as per your design
+    //const double contentHeight = 20.0; // Adjust as per your design
 
     return Container(
       width: width,

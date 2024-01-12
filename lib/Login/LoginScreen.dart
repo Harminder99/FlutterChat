@@ -111,7 +111,7 @@ class _LoginFormState extends State<LoginForm> {
                           loginViewModel.loginApi((error){
                             if (error != null) {
                               Dialogs().showDefaultAlertDialog(
-                                  context, "Alert", error!);
+                                  context, "Alert", error ?? "");
                             } else {
                               Navigator.pushAndRemoveUntil(
                                 context,

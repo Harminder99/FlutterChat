@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:untitled2/Login/LoginModel.dart';
 import 'package:untitled2/Login/LoginScreen.dart';
 import 'package:untitled2/Login/LoginViewModel.dart';
+import 'package:untitled2/NetworkApi/HeaderService.dart';
 
 import '../NetworkApi/WebSocketManager.dart';
 import '../Reuseables/CircleImage.dart';
@@ -143,6 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Provider.of<LoginViewModel>(context, listen: false);
 
             if (viewModel.model != null && viewModel.model?.token != "") {
+              Global.authToken = "";
               final socket = Provider.of<WebSocketManager>(context, listen: false);
               socket.disConnect();
               Navigator.pushAndRemoveUntil(

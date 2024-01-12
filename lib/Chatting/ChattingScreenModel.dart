@@ -1,14 +1,16 @@
 
+import 'package:flutter/cupertino.dart';
+
 import 'ReceiverProfile.dart';
 
-enum MessageStatus { pending, sent, delivered, seen }
+enum MessageStatus {sending, pending, sent, delivered, seen }
 
 class ChattingScreenModel {
   final bool isSender;
   final String message;
   final DateTime date;
-  final MessageStatus status;
-  final String id;
+   MessageStatus status;
+  final String messageId;
   final ReceiverProfile receiverProfile;
 
   ChattingScreenModel({
@@ -16,20 +18,37 @@ class ChattingScreenModel {
     required this.message,
     required this.date,
     required this.status,
-    required this.id,
+    required this.messageId,
     required this.receiverProfile,
   });
 
   factory ChattingScreenModel.fromJson(Map<String, dynamic> json) {
+
+    final profile = ReceiverProfile.fromJson(json['receiverProfile'] as Map<String, dynamic>);
     return ChattingScreenModel(
-      isSender: json['isSender'] as bool,
+      isSender: false,
       message: json['message'] as String,
-      date: DateTime.parse(json['date'] as String),
-      status: MessageStatus.values.firstWhere(
+      date: json['date'] != null ? DateTime.parse(json['date'].toString()) : DateTime.timestamp(),
+      status: json['status'] != null ? MessageStatus.values.firstWhere(
             (e) => e.toString() == 'MessageStatus.${json['status']}',
-      ),
-      id: json['id'] as String,
-      receiverProfile: ReceiverProfile.fromJson(json['reciverProfile'] as Map<String, dynamic>),
+      ) : MessageStatus.delivered,
+      messageId: json['messageId']?.toString() ?? "",
+      receiverProfile: profile,
+    );
+  }
+
+  factory ChattingScreenModel.fromRecJson(Map<String, dynamic> json) {
+
+    final profile = ReceiverProfile.fromJson(json['receiverProfile'] as Map<String, dynamic>);
+    return ChattingScreenModel(
+      isSender: false,
+      message: json['message'] as String,
+      date: DateTime.timestamp(),
+      status: json['status'] != null ? MessageStatus.values.firstWhere(
+            (e) => e.toString() == 'MessageStatus.${json['status']}',
+      ) : MessageStatus.delivered,
+      messageId: json['messageId']?.toString() ?? "",
+      receiverProfile: profile,
     );
   }
 
@@ -37,10 +56,10 @@ class ChattingScreenModel {
     return {
       'isSender': isSender,
       'message': message,
-      'date': date.toIso8601String(),
+      'date': date.toUtc().toIso8601String(),
       'status': status.toString().split('.').last,
-      'id': id,
-      'reciverProfile': receiverProfile.toJson(),
+      'messageId': messageId,
+      'receiverProfile': receiverProfile.toJson(),
     };
   }
 }

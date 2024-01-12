@@ -1,24 +1,31 @@
 import 'package:flutter/cupertino.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled2/Chatting/ReceiverProfile.dart';
 import 'package:untitled2/Home/HomeScreenModel.dart';
+import 'package:untitled2/Home/HomeScreenViewModel.dart';
 import 'package:untitled2/NetworkApi/ApiEndpoints.dart';
 import 'package:untitled2/NetworkApi/WebSocketManager.dart';
+import 'package:untitled2/Utiles/Utiles.dart';
 
 import '../NetworkApi/CallBackSocketModel.dart';
 import 'ChattingScreenModel.dart';
 
 class ChattingScreenViewModel extends ChangeNotifier {
+  bool isChatScreenVisible = false;
   HomeScreenModel? _userModel;
   String _inputText = '';
   bool _isEmojiVisible = false;
   final bool _isLoadingMore = false;
   final Set<String> _selectedMessages = {}; // add message _id
+  ReceiverProfile? _receiverProfile;
 
   String get inputText => _inputText;
 
   bool get isLoadingMore => _isLoadingMore;
+
   Set<String> get selectedMessages => _selectedMessages;
+
   bool get isSendButtonVisible => _inputText.isNotEmpty;
   final List<ChattingScreenModel> _messages = [];
 
@@ -65,13 +72,19 @@ class ChattingScreenViewModel extends ChangeNotifier {
     "Perfect. I've been wanting to try it. See you then!",
     "Visit Google website at https://www.google.com for more information, join the conversation on research using #ArtificialIntelligence, and don't forget to follow @Harminder for the latest updates."
   ];
+   Map<DateTime, List<ChattingScreenModel>> _messagesGroup = {};
+  Map<DateTime, List<ChattingScreenModel>> get messages => _messagesGroup;
 
 
-  Map<DateTime, List<ChattingScreenModel>> get messages => _groupMessagesByWeek(_messages);
+  ReceiverProfile? get receiverProfile => _receiverProfile;
 
   void setEmojiVisible(bool isShow) {
     _isEmojiVisible = isShow;
     notifyListeners();
+  }
+
+  void setReceiverProfile(ReceiverProfile profile) {
+    _receiverProfile = profile;
   }
 
   void setUserModel(HomeScreenModel model) {
@@ -92,23 +105,68 @@ class ChattingScreenViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void sendMessage(BuildContext context,TextEditingController textController) {
+  void receiveMessage(ChattingScreenModel model) {
+    _messages.insert(0, model);
+    _messagesGroup = groupChatMessages(_messages);
+    notifyListeners();
+  }
+
+  void updateStatusEmit(BuildContext context,ChattingScreenModel chatModel, MessageStatus status){
+    final viewModel = Provider.of<WebSocketManager>(context, listen: false);
+    final model = ChattingScreenModel(
+        isSender: true,
+        message: "",
+        date: DateTime.now(),
+        status: status,
+        messageId: chatModel.messageId,
+        receiverProfile: _receiverProfile!);
+    viewModel.emit(ApiEndpoints.sendMessage, {...model.toJson(),...{"event" : ApiEndpoints.oneToOneStatus}});
+  }
+
+  void updateSeenAllEmit(BuildContext context) {
+    final viewModel = Provider.of<WebSocketManager>(context, listen: false);
+    final data = {
+      "receiverProfile": _receiverProfile?.toJson() ?? {},
+      "event": ApiEndpoints.oneToOneStatus,
+      "status": MessageStatus.seen.toString().split('.').last,
+      "date": DateTime.timestamp().toUtc().toIso8601String(),
+    };
+    viewModel.emit(ApiEndpoints.sendMessage, data);
+  }
+
+  void sendMessage(BuildContext context, TextEditingController textController) {
     if (_inputText.isNotEmpty) {
+      final msgId = Utils.generateUniqueString();
       final model = ChattingScreenModel(
           isSender: true,
           message: _inputText,
           date: DateTime.now(),
-          status: MessageStatus.sent,
-          id: "1",
-          receiverProfile: ReceiverProfile(name: 'Maninder', id: "1", photo: ""));
+          status: MessageStatus.sending,
+          messageId: msgId,
+          receiverProfile: _receiverProfile!);
+      debugPrint("Message Sent ==> $msgId");
       _messages.insert(0, model);
+      _messagesGroup = groupChatMessages(_messages);
       final viewModel = Provider.of<WebSocketManager>(context, listen: false);
-
-      viewModel.emitWithCallBack(ApiEndpoints.sendMessage, model.toJson(),(CallBackSocketModel model){
-        if (model.status == ApiEndpoints.success){
-          debugPrint("Wahoooo!");
-        }else{
-          debugPrint("Oooops!");
+      final homeModel =
+          Provider.of<HomeScreenViewModel>(context, listen: false);
+      homeModel.updateListMessage(model, false);
+      viewModel.emitWithCallBack(ApiEndpoints.sendMessage, {...model.toJson(),...{"event" : ApiEndpoints.oneToOneChat}},
+          (CallBackSocketModel model) {
+        if (model.status == ApiEndpoints.success) {
+          debugPrint("Wah!");
+          final index =
+              _messages.indexWhere((element) => element.messageId == model.messageId);
+          debugPrint("index ==> $index == ${model.messageId}");
+          if (index >= 0) {
+            final message = _messages[index];
+            message.status = MessageStatus.sent;
+            _messages[index] = message;
+            _messagesGroup = groupChatMessages(_messages);
+            notifyListeners();
+          }
+        } else {
+          debugPrint("Oops!");
         }
       });
       _inputText = "";
@@ -142,73 +200,58 @@ class ChattingScreenViewModel extends ChangeNotifier {
 
   List<ChattingScreenModel> createDummyMessages() {
     List<ChattingScreenModel> users = [];
-    DateTime startDate = DateTime.now().subtract(const Duration(days: 50));
-    for (int i = 0; i <= conversation.length; i++) {
-      if(i >= 0 && i < conversation.length) {
-        DateTime messageDate = startDate.add(Duration(days: i));
+    DateTime endDate = DateTime.now().subtract(const Duration(days: 10));
+
+    for (int i = 0; i <= 5 ; i++) {
+      if (i >= 0 && i < conversation.length) {
+        // Subtract days from the end date to go back in time
+        DateTime messageDate = endDate.subtract(Duration(days: i));
         users.add(ChattingScreenModel(
-            isSender: i % 2 == 0,  // Alternating sender for demonstration
+            isSender: i % 2 == 0,
             message: conversation[i],
             date: messageDate,
             status: MessageStatus.sent,
-            id: "${i + 1}",
-            receiverProfile: ReceiverProfile(
-                name: 'Maninder', id: "1", photo: "")
-        ));
+            messageId: Utils.generateUniqueString(),
+            receiverProfile: _receiverProfile!));
       }
     }
 
     return users;
   }
 
-  // Method to group messages by the start of their month
-  // Map<DateTime, List<ChattingScreenModel>> _groupMessagesByMonth(List<ChattingScreenModel> messages) {
-  //   Map<DateTime, List<ChattingScreenModel>> groupedMessages = {};
-  //   for (var message in messages) {
-  //     // Get the first day of the month for each message
-  //     var month = DateTime(message.date.year, message.date.month);
-  //     if (!groupedMessages.containsKey(month)) {
-  //       groupedMessages[month] = [];
-  //     }
-  //     groupedMessages[month]!.add(message);
-  //   }
-  //   return groupedMessages;
-  // }
-
-  // group weekly
-  Map<DateTime, List<ChattingScreenModel>> _groupMessagesByWeek(List<ChattingScreenModel> messages) {
+  Map<DateTime, List<ChattingScreenModel>> groupChatMessages(List<ChattingScreenModel> messages) {
     Map<DateTime, List<ChattingScreenModel>> groupedMessages = {};
 
-    for (var message in messages) {
-      // Get the start of the week for each message
-      DateTime startOfWeek = _getStartOfWeek(message.date);
+    messages.sort((a, b) => b.date.compareTo(a.date));
 
-      if (!groupedMessages.containsKey(startOfWeek)) {
-        groupedMessages[startOfWeek] = [];
+    DateTime currentDate = Jiffy.now().startOf(Unit.day).dateTime;
+
+    for (var message in messages) {
+      DateTime messageDate = message.date;
+      DateTime groupDate;
+
+      if (currentDate.difference(messageDate).inDays <= 15) {
+        // Messages within the last 15 days
+        groupDate = Jiffy.parseFromDateTime(messageDate).startOf(Unit.day).dateTime;
+      } else {
+        // Older messages grouped by week
+        groupDate = Jiffy.parseFromDateTime(messageDate).startOf(Unit.week).dateTime;
       }
-      groupedMessages[startOfWeek]!.add(message);
+
+      if (!groupedMessages.containsKey(groupDate)) {
+        groupedMessages[groupDate] = [];
+      }
+      groupedMessages[groupDate]!.add(message);
     }
+
     return groupedMessages;
   }
-
-  DateTime _getStartOfWeek(DateTime date) {
-    // Assuming week starts on Monday
-    // Calculate the number of days to subtract to get to the last Monday
-    int daysToSubtract = (date.weekday - DateTime.monday) % 7;
-    return DateTime(date.year, date.month, date.day - daysToSubtract);
-  }
-
-
   void getChatting() {
-    debugPrint("START CHATTING");
     _messages.clear();
-    debugPrint("ASK CHATTING");
     _messages.addAll(createDummyMessages());
-    debugPrint("NOTIFY CHATTING");
+    _messagesGroup = groupChatMessages(_messages);
     Future.microtask(() => notifyListeners());
   }
 
-  void loadMore(){
-
-  }
+  void loadMore() {}
 }

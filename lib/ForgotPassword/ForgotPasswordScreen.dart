@@ -4,9 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:untitled2/ForgotPassword/ForgotPasswordViewModel.dart';
 
 import '../Reuseables/CircleImage.dart';
-import '../Reuseables/CustomButton.dart';
 import '../Reuseables/GradientButton.dart';
-import '../Reuseables/PasswordTextFormField.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   const ForgotPasswordScreen({super.key});

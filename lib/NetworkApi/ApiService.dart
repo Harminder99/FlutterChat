@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:untitled2/NetworkApi/ApiEndpoints.dart';
@@ -30,11 +28,12 @@ class ApiService {
 
   Future<ApiResponse<T>> get<T>(String apiEndPoint, String params, T Function(dynamic) fromJson) async {
     try {
+      debugPrint("Future ==> ${ApiEndpoints.baseUrl}$apiEndPoint$params");
       CancelToken cancelToken = CancelToken();
       _cancelTokens[apiEndPoint] = cancelToken;
       Response response = await _dio.get(
         "${ApiEndpoints.baseUrl}$apiEndPoint$params",
-        options: Options(headers: _headerService.getHeaders()),
+        options: Options(headers: _headerService.getHeaders(apiEndPoint)),
         cancelToken: cancelToken,
       );
       cancelApi(apiEndPoint);
@@ -59,7 +58,7 @@ class ApiService {
       Response response = await _dio.post(
         "${ApiEndpoints.baseUrl}$apiEndPoint",
         data: data,
-        options: Options(headers: _headerService.getHeaders()),
+        options: Options(headers: _headerService.getHeaders(apiEndPoint)),
         cancelToken: cancelToken,
       );
       cancelApi(apiEndPoint);
@@ -84,7 +83,7 @@ class ApiService {
       Response response = await _dio.patch(
         "${ApiEndpoints.baseUrl}$apiEndPoint",
         data: data,
-        options: Options(headers: _headerService.getHeaders()),
+        options: Options(headers: _headerService.getHeaders(apiEndPoint)),
         cancelToken: cancelToken,
       );
       cancelApi(apiEndPoint);
@@ -109,7 +108,7 @@ class ApiService {
       Response response = await _dio.delete(
         "${ApiEndpoints.baseUrl}$apiEndPoint",
         data: data,
-        options: Options(headers: _headerService.getHeaders()),
+        options: Options(headers: _headerService.getHeaders(apiEndPoint)),
         cancelToken: cancelToken,
       );
       cancelApi(apiEndPoint);

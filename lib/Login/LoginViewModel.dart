@@ -1,8 +1,5 @@
-import 'dart:ffi';
-
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:untitled2/Utiles/Dialogs.dart';
 
 import '../NetworkApi/ApiEndpoints.dart';
 import '../NetworkApi/ApiResponse.dart';
@@ -21,11 +18,11 @@ class LoginViewModel extends ChangeNotifier {
   LoginModel? _model;
 
   LoginViewModel() {
-    _apiService = ApiService(HeaderService(this));
+    _apiService = ApiService(HeaderService());
   }
 
   ApiService get apiService {
-    _apiService ??= ApiService(HeaderService(this));
+    _apiService ??= ApiService(HeaderService());
     return _apiService!;
   }
 
@@ -143,6 +140,7 @@ class LoginViewModel extends ChangeNotifier {
     if (response != null && response!.isSuccess) {
       // Handle success scenario
       _model = response.data!;
+      Global.authToken = _model?.token;
       onComplete(null);
     } else {
       // Handle error scenario
@@ -169,6 +167,7 @@ class LoginViewModel extends ChangeNotifier {
     if (response != null && response!.isSuccess) {
       // Handle success scenario
       _model = response.data!;
+      Global.authToken = _model?.token;
       onComplete(null);
     } else {
       // Handle error scenario

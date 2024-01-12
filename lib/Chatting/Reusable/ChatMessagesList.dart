@@ -1,16 +1,17 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sticky_headers/sticky_headers/widget.dart';
+import 'package:untitled2/Home/HomeScreenViewModel.dart';
 
+import '../../NetworkApi/ApiEndpoints.dart';
+import '../../NetworkApi/SocketResponse.dart';
+import '../../NetworkApi/WebSocketManager.dart';
 import '../../Reuseables/ChatBubble.dart';
 import '../../Reuseables/RichTextWithReadMore.dart';
-import 'DocumentCell.dart';
-import 'ImageCell.dart';
+import '../../main.dart';
 import '../ChattingScreenModel.dart';
 import '../ChattingScreenViewModel.dart';
-import 'VideoCell.dart';
 
 class ChatMessagesList extends StatefulWidget {
   const ChatMessagesList({super.key});
@@ -19,13 +20,71 @@ class ChatMessagesList extends StatefulWidget {
   _ChatMessagesListState createState() => _ChatMessagesListState();
 }
 
-class _ChatMessagesListState extends State<ChatMessagesList> {
+class _ChatMessagesListState extends State<ChatMessagesList> with WidgetsBindingObserver, RouteAware{
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
+    final viewModel =
+    Provider.of<ChattingScreenViewModel>(context, listen: false);
+    viewModel.isChatScreenVisible = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      viewModel.updateSeenAllEmit(context);
+    });
+    // you can do this with scroll like if reach end make it zero, and visible cell count - 1 there is so many ways
+    //homeViewModel.updateCountToZeroById(viewModel.receiverProfile?.id ??"");
+  }
+
+  @override
+  void didPushNext() {
+    // TODO: implement didPushNext
+
+    super.didPushNext();
+    debugPrint("didPushNext chat");
+    final viewModel =
+    Provider.of<ChattingScreenViewModel>(context, listen: false);
+    viewModel.isChatScreenVisible = false;
+  }
+
+  @override
+  void didPopNext() {
+    // TODO: implement didPopNext
+    super.didPopNext();
+    debugPrint("didPopNext chat");
+// come from another screen
+    final viewModel =
+    Provider.of<ChattingScreenViewModel>(context, listen: false);
+    final homeViewModel =
+    Provider.of<HomeScreenViewModel>(context, listen: false);
+    viewModel.isChatScreenVisible = true;
+    // you can do this with scroll like if reach end make it zero, and visible cell count - 1 there is so many ways
+    homeViewModel.updateCountToZeroById(viewModel.receiverProfile?.id ??"");
+  }
+
+  @override
+  void didPush() {
+    // TODO: implement didPush
+    super.didPush();
+    debugPrint("didPush chat");
+
+  }
+
+
+  @override
+  void didPop() {
+    // TODO: implement didPop
+    super.didPop();
+    debugPrint("didPop chat");
+    final viewModel =
+    Provider.of<ChattingScreenViewModel>(context, listen: false);
+    final homeViewModel =
+    Provider.of<HomeScreenViewModel>(context, listen: false);
+    viewModel.isChatScreenVisible = false;
+    // you can do this with scroll like if reach end make it zero, and visible cell count - 1 there is so many ways
+    homeViewModel.updateCountToZeroById(viewModel.receiverProfile?.id ??"");
   }
 
   void _onScroll() {
@@ -44,9 +103,10 @@ class _ChatMessagesListState extends State<ChatMessagesList> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<ChattingScreenViewModel>(context);
-    final width = MediaQuery.of(context).size.width;
+    final viewModel = Provider.of<ChattingScreenViewModel>(context,listen: true);
+    //final width = MediaQuery.of(context).size.width;
     return ListView.builder(
+      key: UniqueKey(),
       reverse: true,
       controller: _scrollController,
       itemCount: viewModel.messages.length + (viewModel.isLoadingMore ? 1 : 0),
@@ -84,26 +144,28 @@ class _ChatMessagesListState extends State<ChatMessagesList> {
                 .asMap()
                 .entries
                 .map((entry) {
-              int itemIndex = entry.key;
+             // int itemIndex = entry.key;
               ChattingScreenModel message = entry.value;
               return GestureDetector(
                 onTap: () {
                   if (viewModel.selectedMessages.isNotEmpty) {
-                    viewModel.handleSelection(message.id);
+                    viewModel.handleSelection(message.messageId);
                   } else {
                     debugPrint("tap");
                   }
                 },
                 onLongPress: () {
-                  viewModel.handleSelection(message.id);
+                  viewModel.handleSelection(message.messageId);
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: viewModel.selectedMessages.contains(message.id)
+                    color: viewModel.selectedMessages.contains(message.messageId)
                         ? Colors.grey[300]
                         : Colors.transparent,
                   ),
                   child: ChatBubble(
+                    date : message.date,
+                    status : message.status,
                     isSender: message.isSender,
                     verticalPadding: 8,
                     horizontalPadding: 8,
@@ -116,7 +178,7 @@ class _ChatMessagesListState extends State<ChatMessagesList> {
               ),
               );
             })
-                .toList() ?? [],
+                .toList(),
           ),
         );
       },
@@ -125,8 +187,32 @@ class _ChatMessagesListState extends State<ChatMessagesList> {
 
   @override
   void dispose() {
+    debugPrint("dispose chat");
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("Resumed chat");
+      final viewModel =
+      Provider.of<ChattingScreenViewModel>(context, listen: false);
+      viewModel.isChatScreenVisible = true;
+    } else if (state == AppLifecycleState.paused) {
+      debugPrint("Pause chat");
+      final viewModel =
+      Provider.of<ChattingScreenViewModel>(context, listen: false);
+      viewModel.isChatScreenVisible = false;
+    }
   }
 }

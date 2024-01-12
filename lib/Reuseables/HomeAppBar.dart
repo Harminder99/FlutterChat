@@ -8,6 +8,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<PopupMenuEntry<dynamic>> menuItems;
   final void Function(dynamic) onMenuSelect;
   final void Function()? onProfileTap;
+  final void Function()? onAddUsers;
 
   const HomeAppBar({
     Key? key,
@@ -15,6 +16,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.imageUrl,
     required this.menuItems,
     required this.onMenuSelect,
+    this.onAddUsers,
     this.onProfileTap,
     this.tag
   }) : super(key: key);
@@ -39,6 +41,13 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       automaticallyImplyLeading: false,
       actions: <Widget>[
+        IconButton(
+          icon: const Icon(
+            Icons.add,
+            color: Colors.white, // Color of the plus icon
+          ),
+          onPressed: onAddUsers,
+        ),
         PopupMenuButton<dynamic>(
           icon: const Icon(Icons.more_vert),
           onSelected: onMenuSelect,

@@ -8,6 +8,10 @@ class ForgotPasswordViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  String getEmail() {
+    return _email;
+  }
+
 
   bool validateAndSaveForm(GlobalKey<FormState> formKey) {
     final form = formKey.currentState;
