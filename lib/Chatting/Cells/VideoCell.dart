@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../Reuseables/FullScreenVideoPlayer.dart';
 import '../ChattingScreenModel.dart';
-import '../../Reuseables/FullScreenImageViewer.dart';
 
 class VideoCell extends StatelessWidget {
   final ChattingScreenModel message;
