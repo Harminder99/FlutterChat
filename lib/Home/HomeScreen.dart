@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled2/AddChating/AddUserForChat.dart';
 import 'package:untitled2/Chatting/ChattingScreen.dart';
@@ -10,12 +9,8 @@ import 'package:untitled2/NetworkApi/ApiEndpoints.dart';
 import 'package:untitled2/NetworkApi/SocketResponse.dart';
 import 'package:untitled2/NetworkApi/WebSocketManager.dart';
 import 'package:untitled2/Profile/ProfileScreen.dart';
-
-import '../Login/LoginViewModel.dart';
 import '../Reuseables/HomeAppBar.dart';
-import '../Utiles/Dialogs.dart';
 import '../Utiles/ProfileDialogScreen.dart';
-import '../main.dart';
 import 'Cells/UserItem.dart';
 import 'HomeScreenModel.dart';
 
@@ -29,8 +24,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  bool _isSearchVisible = true;
-
 
   @override
   void initState() {
@@ -43,42 +36,25 @@ class _HomeScreenState extends State<HomeScreen> {
       callApi(1);
     });
 
-    _scrollController.addListener(_onScroll);
+    //_scrollController.addListener(_onScroll);
     _searchController.addListener(_onSearchChanged);
+  }
+
+  void _deleteUsers(){
+    final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
+    if(viewModel.selectedUserIds.isNotEmpty) {
+      viewModel.deleteUsers();
+    }
   }
 
   void callApi(int page) {
     final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
-    viewModel.getUsers(1, (String? error) {
-      if (error != null) {
-        Dialogs().showDefaultAlertDialog(context, "Alert", error ?? "");
-      }
-    });
+    viewModel.getUsers();
   }
 
   void _onSearchChanged() {
     final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
     viewModel.searchData(_searchController.text);
-  }
-
-  void _onScroll() {
-    final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
-        viewModel.limit <= viewModel.data.length) {
-      // End of the list reached
-
-      viewModel.loadMore();
-    }
-
-    // Determine whether to show or hide the search bar
-    bool isScrollingDown = _scrollController.position.userScrollDirection ==
-        ScrollDirection.reverse;
-    if (isScrollingDown && _isSearchVisible) {
-      setState(() => _isSearchVisible = false);
-    } else if (!isScrollingDown && !_isSearchVisible) {
-      setState(() => _isSearchVisible = true);
-    }
   }
 
   void _handleCellTap(HomeScreenModel user, String tag) {
@@ -154,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onMenuSelect: handleMenuSelection,
         onProfileTap: handleProfileSelection,
         onAddUsers: _onAddUsers,
+        onDeleteUsers: _deleteUsers,
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
@@ -216,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tag: 'profile-hero$index',
                   isSelected: isSelected,
                   imageUrl: user.photo,
-                  username: user.username,
+                  username: user.name,
                   message: user.message,
                   date: user.date,
                   count: user.count,
@@ -244,6 +221,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+        if (!isLoading && homeScreenViewModel.data.isEmpty)
+          SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                      "No user for chat,\nClick on button to add new user.",
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20), // For spacing
+                  ElevatedButton(
+                    onPressed: () {
+                      _onAddUsers();
+                    },
+                    child: const Text("Add Chat"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      callApi(1);
+                    },
+                    child: const Text("Retry"),
+                  ),
+                ],
+              ),
+            ),
+          )
       ],
     );
   }
@@ -267,23 +272,27 @@ class _HomeScreenState extends State<HomeScreen> {
             ChattingScreenModel.fromRecJson(model.data!);
         final socketViewModel =
             Provider.of<ChattingScreenViewModel>(context, listen: false);
-        final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
+        final viewModel =
+            Provider.of<HomeScreenViewModel>(context, listen: false);
 
-        if (socketViewModel.receiverProfile?.id == chatModel.receiverProfile.id) {
+        if (socketViewModel.receiverProfile?.id ==
+            chatModel.receiverProfile.id) {
           debugPrint("you are in chatting screen");
           socketViewModel.receiveMessage(chatModel);
           // update home screen list because you have short this list by time and update last message but not count
-          viewModel.updateListMessage(chatModel, socketViewModel.isChatScreenVisible ? false : true);
-          if (!socketViewModel.isChatScreenVisible){
+          viewModel.updateListMessage(
+              chatModel, socketViewModel.isChatScreenVisible ? false : true);
+          if (!socketViewModel.isChatScreenVisible) {
             showNotifications();
           }
 
           // return emit to update message Status here message is delivered
-          socketViewModel.updateStatusEmit(context,chatModel, MessageStatus.delivered);
+          socketViewModel.updateStatusEmit(
+              context, chatModel, MessageStatus.delivered);
         } else {
           debugPrint("Chatting screen is closed");
           // update count, last message and time here
-          viewModel.updateListMessage(chatModel,true);
+          viewModel.updateListMessage(chatModel, true);
           showNotifications();
         }
       } else {
@@ -292,7 +301,5 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void showNotifications(){
-
-  }
+  void showNotifications() {}
 }

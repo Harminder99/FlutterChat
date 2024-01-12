@@ -123,7 +123,7 @@ class AddUserChatViewModel extends ChangeNotifier {
       notifyListeners();
     } else if (searchTxt.length > 3) {
       _userData = _data.where((user) {
-        return user.username.toLowerCase().contains(searchTxt.toLowerCase());
+        return user.name.toLowerCase().contains(searchTxt.toLowerCase());
       }).toList();
 
       notifyListeners();
@@ -132,6 +132,6 @@ class AddUserChatViewModel extends ChangeNotifier {
 
   void onImageTap(HomeScreenModel user) {
     // Handle image tap logic here
-    debugPrint("Image tapped for user: ${user.username}");
+    debugPrint("Image tapped for user: ${user.name}");
   }
 }

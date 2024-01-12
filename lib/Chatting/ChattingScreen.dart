@@ -26,7 +26,7 @@ class _ChattingScreenState extends State<ChattingScreen> {
     final viewModel =
     Provider.of<ChattingScreenViewModel>(context, listen: false);
     viewModel.setReceiverProfile(ReceiverProfile(
-        name: widget.user.username,
+        name: widget.user.name,
         id: widget.user.id,
         photo: widget.user.photo,
         email: widget.user.email));
@@ -62,7 +62,7 @@ class _ChattingScreenState extends State<ChattingScreen> {
     } else {
       return GeneralAppBar(
         tag: widget.tag,
-        title: widget.user.username,
+        title: widget.user.name,
         imageUrl: 'https://picsum.photos/200',
         menuItems: const <PopupMenuEntry<dynamic>>[
           PopupMenuItem<dynamic>(

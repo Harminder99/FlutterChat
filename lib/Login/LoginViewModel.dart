@@ -141,6 +141,7 @@ class LoginViewModel extends ChangeNotifier {
       // Handle success scenario
       _model = response.data!;
       Global.authToken = _model?.token;
+      Global.userId = _model?.id;
       onComplete(null);
     } else {
       // Handle error scenario
@@ -168,6 +169,7 @@ class LoginViewModel extends ChangeNotifier {
       // Handle success scenario
       _model = response.data!;
       Global.authToken = _model?.token;
+      Global.userId = _model?.id;
       onComplete(null);
     } else {
       // Handle error scenario

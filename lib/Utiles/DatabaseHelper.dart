@@ -1,18 +1,21 @@
+import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 import '../Chatting/ChattingScreenModel.dart';
 import '../Home/HomeScreenModel.dart';
+import '../NetworkApi/HeaderService.dart';
 
 class DatabaseHelper {
   static Future<Database> getDatabase() async {
     final dbPath = await getDatabasesPath();
     return openDatabase(
-      join(dbPath, 'my_database.db'),
+      join(dbPath, 'chatDatabase.db'),
       onCreate: (db, version) {
         db.execute('''CREATE TABLE users(
-          id TEXT PRIMARY KEY, 
-          username TEXT, 
+          id TEXT PRIMARY KEY,
+          loginId TEXT, 
+          name TEXT, 
           email TEXT, 
           photo TEXT, 
           message TEXT, 
@@ -33,6 +36,7 @@ class DatabaseHelper {
 
 // Add a User
   Future<void> addUser(HomeScreenModel user) async {
+    debugPrint("DATABASE INIT");
     final db = await getDatabase();
     await db.insert(
       'users',
@@ -48,7 +52,7 @@ class DatabaseHelper {
   }
 
 // Remove Users by multiple IDs
-  Future<void> removeUsers(List<String> ids) async {
+  Future<void> removeUsers(Set<String> ids) async {
     final db = await getDatabase();
     String idsInString = ids.map((id) => "'$id'").join(', ');
     await db.rawDelete('DELETE FROM users WHERE id IN ($idsInString)');
@@ -59,6 +63,19 @@ class DatabaseHelper {
     final db = await getDatabase();
     final List<Map<String, dynamic>> maps =
         await db.query('users', orderBy: 'date DESC');
+    debugPrint("$maps");
+    return List.generate(maps.length, (i) {
+      return HomeScreenModel.fromJson(maps[i]);
+    });
+  }
+
+  Future<List<HomeScreenModel>> getUsersByLoginId() async {
+    final db = await getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('users',
+        where: 'loginId = ?', // Add where clause
+        whereArgs: [Global.userId], // Pass loginId as argument
+        orderBy: 'date DESC');
+    debugPrint("$maps");
     return List.generate(maps.length, (i) {
       return HomeScreenModel.fromJson(maps[i]);
     });

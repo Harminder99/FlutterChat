@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:untitled2/Reuseables/CircleImage.dart';
+
+import '../Home/HomeScreenViewModel.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -9,6 +12,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final void Function(dynamic) onMenuSelect;
   final void Function()? onProfileTap;
   final void Function()? onAddUsers;
+  final void Function()? onDeleteUsers;
 
   const HomeAppBar({
     Key? key,
@@ -18,11 +22,13 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onMenuSelect,
     this.onAddUsers,
     this.onProfileTap,
-    this.tag
+    this.tag,
+    this.onDeleteUsers
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final homeScreenViewModel = Provider.of<HomeScreenViewModel>(context);
     return AppBar(
       leading: Container(
         padding: const EdgeInsets.all(1),
@@ -41,18 +47,31 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       automaticallyImplyLeading: false,
       actions: <Widget>[
+        if(homeScreenViewModel.selectedUserIds == null || homeScreenViewModel.selectedUserIds!.isEmpty)
+       Row(
+         children: [
+           IconButton(
+             icon: const Icon(
+               Icons.add,
+               color: Colors.white, // Color of the plus icon
+             ),
+             onPressed: onAddUsers,
+           ),
+           PopupMenuButton<dynamic>(
+             icon: const Icon(Icons.more_vert),
+             onSelected: onMenuSelect,
+             itemBuilder: (BuildContext context) => menuItems,
+           )
+         ],
+       ),
+        if(homeScreenViewModel.selectedUserIds != null && homeScreenViewModel.selectedUserIds!.isNotEmpty)
         IconButton(
           icon: const Icon(
-            Icons.add,
+            Icons.delete,
             color: Colors.white, // Color of the plus icon
           ),
-          onPressed: onAddUsers,
-        ),
-        PopupMenuButton<dynamic>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: onMenuSelect,
-          itemBuilder: (BuildContext context) => menuItems,
-        ),
+          onPressed: onDeleteUsers,
+        )
       ],
     );
   }

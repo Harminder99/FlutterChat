@@ -18,5 +18,6 @@ class HeaderService {
 
 class Global {
   static String? authToken;
+  static String? userId;
 }
 

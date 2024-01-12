@@ -236,7 +236,7 @@ class _AddUserForChatState extends State<AddUserForChat>
                   tag: 'profile-hero$index',
                   isSelected: false,
                   imageUrl: user.photo,
-                  username: user.username,
+                  username: user.name,
                   message: user.message,
                   date: user.date,
                   count: user.count,

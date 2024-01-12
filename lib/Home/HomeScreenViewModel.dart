@@ -7,6 +7,7 @@ import '../NetworkApi/ApiEndpoints.dart';
 import '../NetworkApi/ApiResponse.dart';
 import '../NetworkApi/ApiService.dart';
 import '../NetworkApi/HeaderService.dart';
+import '../Utiles/DatabaseHelper.dart';
 import 'HomeScreenModel.dart';
 
 class HomeScreenViewModel extends ChangeNotifier {
@@ -86,7 +87,10 @@ class HomeScreenViewModel extends ChangeNotifier {
 
   void addNewUser(ChattingScreenModel chatModel) {
     debugPrint("Added new User");
-    _data.insert(0, HomeScreenModel.updateModelFromChatModel(chatModel));
+    HomeScreenModel model = HomeScreenModel.updateModelFromChatModel(chatModel);
+    _data.insert(0, model);
+    addUser(model);
+    notifyListeners();
   }
 
   void updateCountToZero(HomeScreenModel model) {
@@ -125,6 +129,7 @@ class HomeScreenViewModel extends ChangeNotifier {
           userChat.message = chatModel.message;
           userChat.date = chatModel.date;
           _data[indexMain] = userChat;
+          addUser(userChat);
         }
         if (index >= 0) {
           final userChat = _userData[index];
@@ -149,6 +154,7 @@ class HomeScreenViewModel extends ChangeNotifier {
         userChat.message = chatModel.message;
         userChat.date = chatModel.date;
         _data[index] = userChat;
+        addUser(userChat);
       } else {
         addNewUser(chatModel);
       }
@@ -156,45 +162,24 @@ class HomeScreenViewModel extends ChangeNotifier {
     }
   }
 
-  void getUsers(int page, Function(String? error) onComplete) async {
-    // Implement your logic to fetch data here
-    // For example, fetch data from an API and add it to _data
-
-    // Simulating network call
-    // _data.clear();
-    // _data.addAll(createDummyUsers());
-    // _userData = _data;
-    // Future.microtask(() => notifyListeners());
-    startLoading();
-    ApiResponse<List<HomeScreenModel>>? response =
-        await _apiService?.get<List<HomeScreenModel>>(
-      ApiEndpoints.usersEndpoint,
-      "",
-      (json) {
-        final data = json["data"];
-        if (data is List) {
-          return data
-              .map((item) => HomeScreenModel.fromJson(item))
-              .toList(); // Convert each item individually
-        } else {
-          debugPrint("Error in format");
-          throw const FormatException("Invalid response format");
-        }
-      },
-    );
-    hideLoading();
-    if (response != null && response!.isSuccess) {
-      // Handle success scenario
-      _userData = response.data!;
-      _data = _userData;
-      notifyListeners();
-    } else {
-      // Handle error scenario
-      ApiError? error = response?.error;
-      debugPrint("Error: ${error?.message ?? "Something went wrong!"}");
-      // Handle the error message as needed
-      onComplete(error?.message ?? "Something went wrong!");
+  void deleteUsers() async {
+    await DatabaseHelper().removeUsers(_selectedUserIds);
+    for (String id in _selectedUserIds) {
+      _userData.removeWhere((element) => element.id == id);
+      _data.removeWhere((element) => element.id == id);
     }
+
+    _selectedUserIds.clear();
+    if (_selectedUserIds.isEmpty) {
+      disableMultiSelection();
+      return;
+    }
+  }
+
+  void getUsers() async {
+   _data = await DatabaseHelper().getUsersByLoginId();
+   _userData = _data;
+   notifyListeners();
   }
 
   void loadMore() {
@@ -213,7 +198,7 @@ class HomeScreenViewModel extends ChangeNotifier {
     } else if (searchTxt.length > 3) {
       _isSearchEnable = true;
       _userData = _data.where((user) {
-        return user.username.toLowerCase().contains(searchTxt.toLowerCase());
+        return user.name.toLowerCase().contains(searchTxt.toLowerCase());
       }).toList();
 
       notifyListeners();
@@ -227,19 +212,19 @@ class HomeScreenViewModel extends ChangeNotifier {
       return false;
     } else {
       // Handle regular tap
-      debugPrint("Cell tapped for user: ${user.username}");
+      debugPrint("Cell tapped for user: ${user.name}");
       return true;
     }
   }
 
   void onImageTap(HomeScreenModel user) {
     // Handle image tap logic here
-    debugPrint("Image tapped for user: ${user.username}");
+    debugPrint("Image tapped for user: ${user.name}");
   }
 
   void onLongTap(HomeScreenModel user) {
     // Handle image tap logic here
-    debugPrint("Cell Long tapped for user: ${user.username}");
+    debugPrint("Cell Long tapped for user: ${user.name}");
     enableMultiSelection();
     toggleUserSelection(user.id);
   }
@@ -250,7 +235,7 @@ class HomeScreenViewModel extends ChangeNotifier {
     for (int i = 1; i <= 110; i++) {
       users.add(HomeScreenModel(
           id: 'id_$i',
-          username:
+          name:
               'User \nMy name is Harminder Singh Saini , You would like to talk $i',
           email: 'user$i@example.com',
           photo: 'https://example.com/photo$i.jpg',
@@ -261,5 +246,11 @@ class HomeScreenViewModel extends ChangeNotifier {
     }
 
     return users;
+  }
+
+  //Database Operations
+  Future<void> addUser(HomeScreenModel user) async {
+    await DatabaseHelper().addUser(user);
+    notifyListeners();
   }
 }
