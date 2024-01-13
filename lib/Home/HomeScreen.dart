@@ -40,9 +40,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.addListener(_onSearchChanged);
   }
 
-  void _deleteUsers(){
+  void _deleteUsers() {
     final viewModel = Provider.of<HomeScreenViewModel>(context, listen: false);
-    if(viewModel.selectedUserIds.isNotEmpty) {
+    if (viewModel.selectedUserIds.isNotEmpty) {
       viewModel.deleteUsers();
     }
   }
@@ -274,26 +274,29 @@ class _HomeScreenState extends State<HomeScreen> {
             Provider.of<ChattingScreenViewModel>(context, listen: false);
         final viewModel =
             Provider.of<HomeScreenViewModel>(context, listen: false);
+        if (model.event == ApiEndpoints.oneToOneStatus) {
+          socketViewModel.updateStatus(chatModel);
+        } else if (model.event == ApiEndpoints.oneToOneChat) {
+          if (socketViewModel.receiverProfile?.id ==
+              chatModel.receiverProfile.id) {
+            debugPrint("you are in chatting screen");
+            socketViewModel.receiveMessage(chatModel);
+            // update home screen list because you have short this list by time and update last message but not count
+            viewModel.updateListMessage(
+                chatModel, socketViewModel.isChatScreenVisible ? false : true);
+            if (!socketViewModel.isChatScreenVisible) {
+              showNotifications();
+            }
 
-        if (socketViewModel.receiverProfile?.id ==
-            chatModel.receiverProfile.id) {
-          debugPrint("you are in chatting screen");
-          socketViewModel.receiveMessage(chatModel);
-          // update home screen list because you have short this list by time and update last message but not count
-          viewModel.updateListMessage(
-              chatModel, socketViewModel.isChatScreenVisible ? false : true);
-          if (!socketViewModel.isChatScreenVisible) {
+            // return emit to update message Status here message is delivered
+            socketViewModel.updateStatusEmit(
+                context, chatModel, MessageStatus.delivered);
+          } else {
+            debugPrint("Chatting screen is closed");
+            // update count, last message and time here
+            viewModel.updateListMessage(chatModel, true);
             showNotifications();
           }
-
-          // return emit to update message Status here message is delivered
-          socketViewModel.updateStatusEmit(
-              context, chatModel, MessageStatus.delivered);
-        } else {
-          debugPrint("Chatting screen is closed");
-          // update count, last message and time here
-          viewModel.updateListMessage(chatModel, true);
-          showNotifications();
         }
       } else {
         debugPrint("print init fail");

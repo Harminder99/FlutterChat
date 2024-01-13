@@ -24,7 +24,7 @@ class _ChattingScreenState extends State<ChattingScreen> {
   void initState() {
     super.initState();
     final viewModel =
-    Provider.of<ChattingScreenViewModel>(context, listen: false);
+        Provider.of<ChattingScreenViewModel>(context, listen: false);
     viewModel.setReceiverProfile(ReceiverProfile(
         name: widget.user.name,
         id: widget.user.id,
@@ -35,7 +35,12 @@ class _ChattingScreenState extends State<ChattingScreen> {
 
   void _handleMenuSelection(dynamic value) {
     // Handle menu selection
+    final viewModel =
+        Provider.of<ChattingScreenViewModel>(context, listen: false);
     debugPrint("Selected: $value");
+    if (value == "cleanAll") {
+      viewModel.deleteAllDataBase();
+    }
   }
 
   void _handleProfileSelection() {
@@ -64,15 +69,16 @@ class _ChattingScreenState extends State<ChattingScreen> {
         tag: widget.tag,
         title: widget.user.name,
         imageUrl: 'https://picsum.photos/200',
-        menuItems: const <PopupMenuEntry<dynamic>>[
-          PopupMenuItem<dynamic>(
-            value: 'Profile',
-            child: Text('Profile'),
+        menuItems:  <PopupMenuEntry<dynamic>>[
+          if(viewModel.messages.isNotEmpty)
+          const PopupMenuItem<dynamic>(
+            value: 'cleanAll',
+            child: Text('Clear All'),
           ),
-          PopupMenuItem<dynamic>(
-            value: 'Settings',
-            child: Text('Settings'),
-          ),
+          // PopupMenuItem<dynamic>(
+          //   value: 'Settings',
+          //   child: Text('Settings'),
+          // ),
           // Add more items as needed
         ],
         onMenuSelect: _handleMenuSelection,
@@ -99,7 +105,9 @@ class _ChattingScreenState extends State<ChattingScreen> {
         ),
         IconButton(
           icon: const Icon(Icons.delete),
-          onPressed: () => {},
+          onPressed: () {
+            viewModel.deleteIntoDataBase();
+          },
         ),
         IconButton(
           icon: const Icon(Icons.info),
@@ -111,7 +119,9 @@ class _ChattingScreenState extends State<ChattingScreen> {
         // Add your actions for multiple selections
         IconButton(
           icon: const Icon(Icons.delete),
-          onPressed: () => {},
+          onPressed: () {
+            viewModel.deleteIntoDataBase();
+          },
         ),
       ]);
     }

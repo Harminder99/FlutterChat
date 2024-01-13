@@ -9,6 +9,7 @@ import 'package:untitled2/NetworkApi/WebSocketManager.dart';
 import 'package:untitled2/Utiles/Utiles.dart';
 
 import '../NetworkApi/CallBackSocketModel.dart';
+import '../Utiles/DatabaseHelper.dart';
 import 'ChattingScreenModel.dart';
 
 class ChattingScreenViewModel extends ChangeNotifier {
@@ -72,9 +73,9 @@ class ChattingScreenViewModel extends ChangeNotifier {
     "Perfect. I've been wanting to try it. See you then!",
     "Visit Google website at https://www.google.com for more information, join the conversation on research using #ArtificialIntelligence, and don't forget to follow @Harminder for the latest updates."
   ];
-   Map<DateTime, List<ChattingScreenModel>> _messagesGroup = {};
-  Map<DateTime, List<ChattingScreenModel>> get messages => _messagesGroup;
+  Map<DateTime, List<ChattingScreenModel>> _messagesGroup = {};
 
+  Map<DateTime, List<ChattingScreenModel>> get messages => _messagesGroup;
 
   ReceiverProfile? get receiverProfile => _receiverProfile;
 
@@ -111,7 +112,22 @@ class ChattingScreenViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateStatusEmit(BuildContext context,ChattingScreenModel chatModel, MessageStatus status){
+  void updateStatus(ChattingScreenModel chatModel) {
+    final index = _messages
+        .indexWhere((element) => element.messageId == chatModel.messageId);
+    debugPrint("updateStatus ==> $index == ${chatModel.messageId}");
+    if (index >= 0) {
+      final message = _messages[index];
+      message.status = chatModel.status;
+      _messages[index] = message;
+      _messagesGroup = groupChatMessages(_messages);
+      notifyListeners();
+    }
+    updateIntoDataBase(chatModel);
+  }
+
+  void updateStatusEmit(BuildContext context, ChattingScreenModel chatModel,
+      MessageStatus status) {
     final viewModel = Provider.of<WebSocketManager>(context, listen: false);
     final model = ChattingScreenModel(
         isSender: true,
@@ -120,7 +136,10 @@ class ChattingScreenViewModel extends ChangeNotifier {
         status: status,
         messageId: chatModel.messageId,
         receiverProfile: _receiverProfile!);
-    viewModel.emit(ApiEndpoints.sendMessage, {...model.toJson(),...{"event" : ApiEndpoints.oneToOneStatus}});
+    viewModel.emit(ApiEndpoints.sendMessage, {
+      ...model.toJson(),
+      ...{"event": ApiEndpoints.oneToOneStatus}
+    });
   }
 
   void updateSeenAllEmit(BuildContext context) {
@@ -147,16 +166,19 @@ class ChattingScreenViewModel extends ChangeNotifier {
       debugPrint("Message Sent ==> $msgId");
       _messages.insert(0, model);
       _messagesGroup = groupChatMessages(_messages);
+      addIntoDataBase(model);
       final viewModel = Provider.of<WebSocketManager>(context, listen: false);
       final homeModel =
           Provider.of<HomeScreenViewModel>(context, listen: false);
       homeModel.updateListMessage(model, false);
-      viewModel.emitWithCallBack(ApiEndpoints.sendMessage, {...model.toJson(),...{"event" : ApiEndpoints.oneToOneChat}},
-          (CallBackSocketModel model) {
+      viewModel.emitWithCallBack(ApiEndpoints.sendMessage, {
+        ...model.toJson(),
+        ...{"event": ApiEndpoints.oneToOneChat}
+      }, (CallBackSocketModel model) {
         if (model.status == ApiEndpoints.success) {
           debugPrint("Wah!");
-          final index =
-              _messages.indexWhere((element) => element.messageId == model.messageId);
+          final index = _messages
+              .indexWhere((element) => element.messageId == model.messageId);
           debugPrint("index ==> $index == ${model.messageId}");
           if (index >= 0) {
             final message = _messages[index];
@@ -164,6 +186,7 @@ class ChattingScreenViewModel extends ChangeNotifier {
             _messages[index] = message;
             _messagesGroup = groupChatMessages(_messages);
             notifyListeners();
+            updateIntoDataBase(message);
           }
         } else {
           debugPrint("Oops!");
@@ -202,7 +225,7 @@ class ChattingScreenViewModel extends ChangeNotifier {
     List<ChattingScreenModel> users = [];
     DateTime endDate = DateTime.now().subtract(const Duration(days: 10));
 
-    for (int i = 0; i <= 5 ; i++) {
+    for (int i = 0; i <= 5; i++) {
       if (i >= 0 && i < conversation.length) {
         // Subtract days from the end date to go back in time
         DateTime messageDate = endDate.subtract(Duration(days: i));
@@ -219,7 +242,8 @@ class ChattingScreenViewModel extends ChangeNotifier {
     return users;
   }
 
-  Map<DateTime, List<ChattingScreenModel>> groupChatMessages(List<ChattingScreenModel> messages) {
+  Map<DateTime, List<ChattingScreenModel>> groupChatMessages(
+      List<ChattingScreenModel> messages) {
     Map<DateTime, List<ChattingScreenModel>> groupedMessages = {};
 
     messages.sort((a, b) => b.date.compareTo(a.date));
@@ -232,10 +256,12 @@ class ChattingScreenViewModel extends ChangeNotifier {
 
       if (currentDate.difference(messageDate).inDays <= 15) {
         // Messages within the last 15 days
-        groupDate = Jiffy.parseFromDateTime(messageDate).startOf(Unit.day).dateTime;
+        groupDate =
+            Jiffy.parseFromDateTime(messageDate).startOf(Unit.day).dateTime;
       } else {
         // Older messages grouped by week
-        groupDate = Jiffy.parseFromDateTime(messageDate).startOf(Unit.week).dateTime;
+        groupDate =
+            Jiffy.parseFromDateTime(messageDate).startOf(Unit.week).dateTime;
       }
 
       if (!groupedMessages.containsKey(groupDate)) {
@@ -246,12 +272,52 @@ class ChattingScreenViewModel extends ChangeNotifier {
 
     return groupedMessages;
   }
-  void getChatting() {
+
+  void getChatting() async {
     _messages.clear();
-    _messages.addAll(createDummyMessages());
-    _messagesGroup = groupChatMessages(_messages);
-    Future.microtask(() => notifyListeners());
+    // _messages.addAll(createDummyMessages());
+    // _messagesGroup = groupChatMessages(_messages);
+    List<ChattingScreenModel> msg =
+        await DatabaseHelper().getChatMessages(0, receiverProfile?.id ?? "");
+    Future.microtask(() {
+      _messages.addAll(msg);
+      _messagesGroup = groupChatMessages(_messages);
+      notifyListeners();
+    });
   }
 
   void loadMore() {}
+
+  void addIntoDataBase(ChattingScreenModel model) async {
+    await DatabaseHelper().addChatMessage(model);
+  }
+
+  void updateIntoDataBase(ChattingScreenModel model) async {
+    await DatabaseHelper().updateChatMessage(model);
+  }
+
+  void deleteIntoDataBase() async {
+    debugPrint("deleteIntoDataBase init");
+    if (_selectedMessages.isNotEmpty) {
+      debugPrint("deleteIntoDataBase start");
+      await DatabaseHelper().removeChatMessages(_selectedMessages);
+      for (String id in _selectedMessages) {
+        _messages.removeWhere((element) => element.messageId == id);
+      }
+      _selectedMessages.clear();
+      _messagesGroup = groupChatMessages(_messages);
+      debugPrint("deleteIntoDataBase finish");
+      notifyListeners();
+    }
+  }
+
+  void deleteAllDataBase() async {
+    debugPrint("deleteAllDataBase init");
+    await DatabaseHelper().removeAllMessages(receiverProfile?.id ?? "");
+    _messages.clear();
+    _selectedMessages.clear();
+    _messagesGroup.clear();
+    debugPrint("deleteAllDataBase finish");
+    notifyListeners();
+  }
 }

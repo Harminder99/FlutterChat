@@ -20,9 +20,11 @@ class HomeScreenViewModel extends ChangeNotifier {
   List<HomeScreenModel> _userData = [];
 
   List<HomeScreenModel> get data {
-    _userData.sort((a, b) => (b.date ?? DateTime(0)).compareTo(a.date ?? DateTime(0)));
+    _userData.sort(
+        (a, b) => (b.date ?? DateTime(0)).compareTo(a.date ?? DateTime(0)));
     return _userData;
   }
+
   int get limit => _limit;
 
   String get searchTxt => _searchTxt;
@@ -87,15 +89,15 @@ class HomeScreenViewModel extends ChangeNotifier {
 
   void addNewUser(ChattingScreenModel chatModel) {
     debugPrint("Added new User");
-    HomeScreenModel model = HomeScreenModel.updateModelFromChatModel(chatModel);
+    HomeScreenModel model = HomeScreenModel.updateModelFromChatModel(
+        chatModel, chatModel.isSender ? 0 : 1);
     _data.insert(0, model);
     addUser(model);
     notifyListeners();
   }
 
   void updateCountToZero(HomeScreenModel model) {
-    final indexMain =
-    _data.indexWhere((element) => element.id == model.id);
+    final indexMain = _data.indexWhere((element) => element.id == model.id);
     if (indexMain >= 0) {
       model.count = 0;
       _data[indexMain] = model;
@@ -115,10 +117,10 @@ class HomeScreenViewModel extends ChangeNotifier {
 
   void updateListMessage(ChattingScreenModel chatModel, bool isCountUpdate) {
     if (_isSearchEnable) {
-      final index =
-          _userData.indexWhere((element) => element.id == chatModel.receiverProfile.id);
-      final indexMain =
-          _data.indexWhere((element) => element.id == chatModel.receiverProfile.id);
+      final index = _userData
+          .indexWhere((element) => element.id == chatModel.receiverProfile.id);
+      final indexMain = _data
+          .indexWhere((element) => element.id == chatModel.receiverProfile.id);
       if (indexMain >= 0 || index >= 0) {
         debugPrint("Update Search User");
         if (indexMain >= 0) {
@@ -145,7 +147,8 @@ class HomeScreenViewModel extends ChangeNotifier {
       }
       notifyListeners();
     } else {
-      final index = _data.indexWhere((element) => element.id == chatModel.receiverProfile.id);
+      final index = _data
+          .indexWhere((element) => element.id == chatModel.receiverProfile.id);
       if (index >= 0) {
         final userChat = _data[index];
         if (isCountUpdate) {
@@ -177,9 +180,9 @@ class HomeScreenViewModel extends ChangeNotifier {
   }
 
   void getUsers() async {
-   _data = await DatabaseHelper().getUsersByLoginId();
-   _userData = _data;
-   notifyListeners();
+    _data = await DatabaseHelper().getUsersByLoginId();
+    _userData = _data;
+    notifyListeners();
   }
 
   void loadMore() {

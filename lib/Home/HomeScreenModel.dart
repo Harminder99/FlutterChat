@@ -26,14 +26,15 @@ class HomeScreenModel {
     count = v;
   }
 
-  factory HomeScreenModel.updateModelFromChatModel(ChattingScreenModel model) {
+  factory HomeScreenModel.updateModelFromChatModel(
+      ChattingScreenModel model, int count) {
     return HomeScreenModel(
         id: model.receiverProfile.id,
         name: model.receiverProfile.name,
         email: model.receiverProfile.email,
         photo: model.receiverProfile.photo,
         message: model.message,
-        count: 1,
+        count: count,
         date: model.date);
   }
 

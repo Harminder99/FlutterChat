@@ -10,7 +10,7 @@ class DatabaseHelper {
   static Future<Database> getDatabase() async {
     final dbPath = await getDatabasesPath();
     return openDatabase(
-      join(dbPath, 'chatDatabase.db'),
+      join(dbPath, 'chat_base.db'),
       onCreate: (db, version) {
         db.execute('''CREATE TABLE users(
           id TEXT PRIMARY KEY,
@@ -23,6 +23,7 @@ class DatabaseHelper {
           count INTEGER)''');
         db.execute('''CREATE TABLE chats(
           messageId TEXT PRIMARY KEY, 
+          loginId TEXT,
           isSender INTEGER, 
           message TEXT, 
           date TEXT, 
@@ -96,7 +97,10 @@ class DatabaseHelper {
 // Add a Chat message
   Future<void> addChatMessage(ChattingScreenModel chat) async {
     final db = await getDatabase();
-    await db.insert('chats', chat.toJson());
+    final json = chat.toDatabaseJson();
+    debugPrint("json ==> $json");
+    addUser(HomeScreenModel.updateModelFromChatModel(chat,0));
+    await db.insert('chats', json);
   }
 
 // Remove a Chat message
@@ -106,32 +110,46 @@ class DatabaseHelper {
   }
 
 // Remove Chat messages by multiple message IDs
-  Future<void> removeChatMessages(List<String> messageIds) async {
+  Future<void> removeChatMessages(Set<String> messageIds) async {
     final db = await getDatabase();
     String idsInString = messageIds.map((id) => "'$id'").join(', ');
     await db.rawDelete('DELETE FROM chats WHERE messageId IN ($idsInString)');
   }
 
+  // Remove all messages
+  Future<void> removeAllMessages(String receiverId) async {
+    final db = await getDatabase();
+    await db.delete(
+      'chats',
+      where: 'receiverId = ? AND loginId = ?',
+      whereArgs: [receiverId, Global.userId],
+    );
+  }
+
 // Select all Chat messages, newest dates first, with pagination
-  Future<List<ChattingScreenModel>> getChatMessages(int offset) async {
+  Future<List<ChattingScreenModel>> getChatMessages(int offset, String receiverId) async {
     final db = await getDatabase();
     final List<Map<String, dynamic>> maps = await db.query(
       'chats',
-      orderBy: 'date DESC',
+      where: 'receiverId = ? AND loginId = ?',
+      whereArgs: [receiverId, Global.userId],
+      orderBy: 'date ASC',
       limit: 10,
       offset: offset,
     );
+    debugPrint("Chat generate==> ${maps.length}");
     return List.generate(maps.length, (i) {
-      return ChattingScreenModel.fromJson(maps[i]);
+      return ChattingScreenModel.fromDatabaseJson(maps[i]);
     });
   }
 
 // Update a Chat message
   Future<void> updateChatMessage(ChattingScreenModel chat) async {
     final db = await getDatabase();
+    final json = chat.toDatabaseJson();
     await db.update(
       'chats',
-      chat.toJson(),
+      json,
       where: 'messageId = ?',
       whereArgs: [chat.messageId],
     );
