@@ -46,10 +46,16 @@ class _ChattingScreenState extends State<ChattingScreen> {
   void _handleProfileSelection() {
     // Handle menu selection
     debugPrint("Selected: Profile");
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => FriendProfileScreen(tag: widget.tag)));
+    final viewModel =
+    Provider.of<ChattingScreenViewModel>(context, listen: false);
+    if (viewModel.receiverProfile != null) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  FriendProfileScreen(tag: widget.tag,
+                      receiverProfile: viewModel.receiverProfile!)));
+    }
   }
 
   PreferredSizeWidget _buildAppBar() {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:untitled2/Login/LoginScreen.dart';
 import 'package:untitled2/Login/LoginViewModel.dart';
 import 'package:untitled2/NetworkApi/HeaderService.dart';
+import 'package:untitled2/Profile/BlockUsersList.dart';
 
 import '../NetworkApi/WebSocketManager.dart';
 import '../Reuseables/CircleImage.dart';
@@ -124,6 +125,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           leading: const Icon(Icons.settings),
           title: const Text('Settings'),
           onTap: () {}, // Add your action
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings),
+          title: const Text('Blocked'),
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                    const BlockUsersList()));
+          }, // Add your action
         ),
         ListTile(
           leading: const Icon(Icons.privacy_tip),

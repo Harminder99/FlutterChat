@@ -52,6 +52,7 @@ class ApiService {
 
 
   Future<ApiResponse<T>> get<T>(String apiEndPoint, String params, T Function(dynamic) fromJson) async {
+    debugPrint("Future ==> ${ApiEndpoints.baseUrl}$apiEndPoint$params");
     try {
       debugPrint("Future ==> ${ApiEndpoints.baseUrl}$apiEndPoint$params");
       CancelToken cancelToken = CancelToken();
@@ -77,7 +78,7 @@ class ApiService {
 
   Future<ApiResponse<T>> post<T>(String apiEndPoint, dynamic data, T Function(dynamic) fromJson) async {
     try {
-      debugPrint("data ==> $data");
+      debugPrint("data ==> ${ApiEndpoints.baseUrl}$apiEndPoint $data");
       CancelToken cancelToken = CancelToken();
       _cancelTokens[apiEndPoint] = cancelToken;
       Response response = await _dio.post(

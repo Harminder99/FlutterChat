@@ -5,6 +5,7 @@ abstract class ApiEndpoints {
   static const String loginEndpoint = '/users/login';
   static const String signUpEndpoint = '/users/signup';
   static const String usersEndpoint = '/users';
+  static const String blockOperationEndpoint = '/users/block';
 
 /* Socket End Points*/
 

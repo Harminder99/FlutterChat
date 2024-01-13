@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import '../Home/HomeScreenModel.dart';
+
 class ReceiverProfile {
   final String name;
   final String email;
@@ -19,6 +21,11 @@ class ReceiverProfile {
         id: json['id']?.toString() ?? "",
         photo: json['photo']?.toString() ?? "",
         email: json['email']?.toString() ?? "");
+  }
+
+  factory ReceiverProfile.fromHomeModel(HomeScreenModel json) {
+    return ReceiverProfile(
+        name: json.name, id: json.id, photo: json.photo, email: json.email);
   }
 
   Map<String, dynamic> toJson() {
